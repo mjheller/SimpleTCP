@@ -7,22 +7,20 @@ using System.Threading.Tasks;
 namespace SimpleTCP
 {
     [Serializable]
-    public class Data
+    public class Data<T>
     {
+
+        T message;
+        public T Message { get; set; }
+
+
         
-        public string SenderIP { get; set; } 
-        public string RecipientIP{ get; set; }
-        public string Protocol{ get; set; }
-        public string Message { get; set; }
-
-
-        public Data(string senderIP, string recipientIP, string protocol, string message)
+        public Data(T data)
         {
-            this.SenderIP = senderIP;
-            this.RecipientIP = recipientIP;
-            this.Protocol = protocol;
-            this.Message = message;
+            this.message = data;
         }
+
+
         public override string ToString()
         {
             return base.ToString();

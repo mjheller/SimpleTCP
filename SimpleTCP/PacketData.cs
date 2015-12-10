@@ -12,7 +12,7 @@ namespace SimpleTCP
     public class PacketData<T>
     {
         T _data;
-        TCPHeader TCPHeader;
+        TCPPacketHeader TCPHeader;
         public byte[] byteArray;
         public PacketData(T data)
         {

@@ -12,8 +12,8 @@ namespace Test
         
         static void Main(string[] args)
         {
-            Data data = new Data("127.0.0.1", "127.0.0.2", "TCP","Hello World!");
-            PacketData<Data> packetData = new PacketData<Data>(data);
+            Data<string> data = new Data<string>("Hello World!");
+            PacketData<Data<string>> packetData = new PacketData<Data<string>>(data);
             
             foreach (byte b in packetData.byteArray)
             {
@@ -22,9 +22,9 @@ namespace Test
                 //Console.Write(b.GetTypeCode());
             }
 
-            Data nonbytes = (Data)packetData.ByteArrayToObject(packetData.byteArray);
-            Console.WriteLine(nonbytes.Message);
-            string wait = Console.ReadLine();
+           // Data nonbytes = (Data)packetData.ByteArrayToObject(packetData.byteArray);
+            //Console.WriteLine(nonbytes.Message);
+            //string wait = Console.ReadLine();
         }
     }
 }

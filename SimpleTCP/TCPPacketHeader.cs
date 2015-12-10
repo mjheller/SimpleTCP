@@ -8,7 +8,7 @@ using System.Net;
 
 namespace SimpleTCP
 {
-    class TCPHeader
+    class TCPPacketHeader
     { // get,set member variables
         // Everything should be a BitArray
         private BitArray _version = new BitArray(4);
@@ -37,14 +37,13 @@ namespace SimpleTCP
         public BitArray DestAddress { get { return _DestAddress; } set { _DestAddress = value; } }
         public BitArray SrcPort { get { return _SrcPort; } set { _SrcPort = value; } }
         public BitArray DestPort { get { return _SrcPort; } set { _SrcPort = value; } }
-        public TCPHeader(int sourcePort, int destinationPort, string sourceAddress, string destAddress)
+        public TCPPacketHeader(string sourceAddress, int sourcePort, string destinationAddress, int destinationPort)
         {
 
-            this.SrcPort = new BitArray(convertIntToByte(sourcePort));
-            this.DestPort = new BitArray(convertIntToByte(destinationPort));
             this.SrcAddress = new BitArray(convertIPAddrToBytes(sourceAddress));
-            this.DestAddress = new BitArray(convertIPAddrToBytes(destAddress));
-               
+            this.SrcPort = new BitArray(convertIntToByte(sourcePort));
+            this.DestAddress = new BitArray(convertIPAddrToBytes(destinationAddress));
+            this.DestPort = new BitArray(convertIntToByte(destinationPort));
         }
     
     public byte[] convertIPAddrToBytes(string address)
@@ -57,6 +56,15 @@ namespace SimpleTCP
         {
             byte intByte = Convert.ToByte(num);
             return intByte;
+        }
+    public  checkSumCalculation()
+        {
+            int checkSum = 0;
+
+        }
+    private int calcDataOffset()
+        {
+
         }
     }
 }

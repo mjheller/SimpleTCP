@@ -40,10 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="PacketData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TCPHeader.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="TCPPacketHeader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
