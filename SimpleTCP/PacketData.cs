@@ -12,18 +12,22 @@ namespace SimpleTCP
     public class PacketData<T>
     {
         T _data;
-        TCPPacketHeader TCPHeader;
-        public byte[] byteArray;
+        public byte[] packetBytes;
+
+        public PacketData()
+        {
+
+        }
         public PacketData(T data)
         {
             
             this._data = data;
-            //TCPHeader = new TCPHeader();
-            this.byteArray = ObjectToByteArray(_data);
+            this.packetBytes = ObjectToByteArray(data);
+            
+            
         }
 
         
-
         public byte[] ObjectToByteArray(Object obj)
         {
             if (obj == null)

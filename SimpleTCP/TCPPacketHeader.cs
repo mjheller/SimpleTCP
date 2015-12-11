@@ -8,116 +8,153 @@ using System.Net;
 
 namespace SimpleTCP
 {
-    class TCPPacketHeader
-    { // get,set member variables
-        // Everything should be a BitArray
-        private BitArray _version = new BitArray(4);
-        private BitArray _IHL = new BitArray(4);
-        private BitArray _TypeOfService = new BitArray(8);
-        private BitArray _TotalLength { get; set; }
-        //Int16 Identification { get; set; }
-        private BitArray _Flags = new BitArray(9); //3
-        //BitArray FragmentOffset = new BitArray(13); //13
-        //BitArray Protocol = new BitArray(16);
-        private BitArray _HeaderChecksum = new BitArray(16);
-        private BitArray _SrcAddress = new BitArray(32);
-        private BitArray _DestAddress = new BitArray(32);
-        private BitArray _Options = new BitArray(320);
-        //BitArray Padding = new BitArray();
-        private BitArray _SrcPort = new BitArray(16);
-        private BitArray _DestPort = new BitArray(16);
-        private BitArray _SeqNumber = new BitArray(16);
-        private BitArray _AckNumber = new BitArray(32);
+    public class TCPPacketHeader
+    {
+        private byte[] _SrcAddress;
+        private byte[] _DestAddress;
+        private ushort _SrcPort;
+        //private BitArray _TotalLength = new BitArray() { get; set; } //packet header + packet data
+        private ushort _DestPort;
+        private uint _SeqNumber;
+        private uint _AckNumber;
+        private BitArray _Reserved = new BitArray(3);
         private BitArray _DataOffset = new BitArray(4);
-        private BitArray _WindowSize = new BitArray(16); //maximum amount of received data, in bytes, that can be buffered at one time on the receiving side of a connection
+        private BitArray _FlagAssign = new BitArray(9);
+        private byte[] _FlagBytes;
+        private ushort _WindowSize;
         private BitArray _Checksum = new BitArray(16);
-        private BitArray _UrgentPointer = new BitArray(16); //pointer tell how many bytes of the data is urgent in the segment that has arrived. 
+        private BitArray _UrgentPointer = new BitArray(16);
+        private BitArray _Options = new BitArray(320);
+        private BitArray _Version = new BitArray(4);
+        private BitArray _TypeOfService = new BitArray(8);
+        //BitArray Padding = new BitArray();
+        private byte[] _PseudoHeader;
 
-        public BitArray SrcAddress { get { return _SrcAddress;} set{ _SrcAddress = value; } }
-        public BitArray DestAddress { get { return _DestAddress; } set { _DestAddress = value; } }
-        public BitArray SrcPort { get { return _SrcPort; } set { _SrcPort = value; } }
-        public BitArray DestPort { get { return _SrcPort; } set { _SrcPort = value; } }
-        public TCPPacketHeader(string sourceAddress, int sourcePort, string destinationAddress, int destinationPort)
+
+        public byte[] SrcAddress { get { return _SrcAddress;} set{ _SrcAddress = value; } }
+        public byte[] DestAddress { get { return _DestAddress; } set { _DestAddress = value; } }
+        public ushort SrcPort { get { return _SrcPort; } set { _SrcPort = value; } }
+        public ushort DestPort { get { return _SrcPort; } set { _SrcPort = value; } }
+        public uint SeqNumber{ get { return _SeqNumber; } set { _SeqNumber = value; } }
+        public uint AckNumber{ get { return _AckNumber; } set { _AckNumber = value; } }
+        public BitArray Reserved { get { return _Reserved; } set { _Reserved = value; } } //
+        public BitArray DataOffset { get { return _DataOffset; } set { _DataOffset = value; } } //
+        public BitArray FlagAssign { get { return _FlagAssign; } set { _FlagAssign = value; } }
+        public byte[] FlagBytes { get { return _FlagBytes; } set { _FlagBytes = value; } }
+        public ushort WindowSize { get { return _WindowSize; } set { _WindowSize = value; } } //
+        
+        public byte[] CheckSum{ get { return _Checksum; } set { _Checksum = value; } }
+        public byte[] UrgentPointer { get { return _UrgentPointer; } set { _UrgentPointer = value; } }
+        public byte[] Options { get { return _Options; } set { _Options = value; } }
+        
+        
+        public byte[] PseudoHeader { get { return _PseudoHeader; } set { _PseudoHeader = value; } }
+        
+        public byte[] headerBytes { get; set; }
+        
+        
+
+        //set individual flags as member variables, and then set property to change the individual bits in the _Flags byte[] that corresponds to the flag changed
+
+        public TCPPacketHeader(int sourcePort, int destinationPort, int sequenceNumber, int ackNumber, bool[] flagArgs, int window, BitArray packetData, int urgentPointerMarker)
         {
+            this.SrcPort = convertIntToUshort(sourcePort);
+            this.DestPort = convertIntToUshort(destinationPort);
+            this.SeqNumber = Convert.ToUInt32(sequenceNumber);
+            this.AckNumber = Convert.ToUInt32(ackNumber);
+            this.DataOffset = SetNoOptionDataOffset();
+            this.Reserved = new BitArray(3, false);
+            this.WindowSize = convertIntToUshort(window);
+            this.CheckSum = SetCheckSum(packetData);
+            this.FlagBytes = this.setFlags(flagArgs);
+            // this.DataOffset = // data + header = packetData.Length
+            this.UrgentPointer = BitConverter.GetBytes(convertIntToUshort(urgentPointerMarker));
+            this.headerBytes = this.collectAllHeader().ToArray();
+            ;
 
-            this.SrcAddress = new BitArray(convertIPAddrToBytes(sourceAddress));
-            this.SrcPort = new BitArray(convertIntToByte(sourcePort));
-            this.DestAddress = new BitArray(convertIPAddrToBytes(destinationAddress));
-            this.DestPort = new BitArray(convertIntToByte(destinationPort));
+            
+
         }
-    
-    public byte[] convertIPAddrToBytes(string address)
+        private BitArray SetNoOptionDataOffset()
+        {
+            BitArray five = new BitArray(4);
+            five.Set(1, true);
+            five.Set(3, true);
+            return five;
+        }
+        private List<byte> collectAllHeader()
+        {
+            List<byte> header = new List<byte>();
+            byte[] SrcPort = BitConverter.GetBytes(this.SrcPort); //SourcePort
+            foreach(byte srcport in SrcPort){ header.Add(srcport);}
+            byte[] DestPort = BitConverter.GetBytes(this.DestPort);
+            foreach(byte destport in DestPort){ header.Add(destport);}
+            byte[] SeqNumber = BitConverter.GetBytes(this.SeqNumber); //Sequence Number
+            foreach (byte seqnumber in DestPort){ header.Add(seqnumber); }
+            byte[] AckNumber = BitConverter.GetBytes(this.AckNumber); //Acknoledgement Number
+            foreach (byte acknumber in DestPort){ header.Add(acknumber); }
+            List<byte> combine16 = new List<byte>(); //DataOffset, Reserved, and Flags 16bits
+            bool[] boolArray = this.DataOffset.Cast<bool>().Concat(this.Reserved.Cast<bool>()).Concat(this.FlagAssign.Cast<bool>()).ToArray();
+            BitArray bits = new BitArray(boolArray);
+            byte[] dataOffsetReservedFlags = BitArrayToByteArray(bits);
+            foreach (byte b in dataOffsetReservedFlags){ header.Add(b);}
+            byte[] windowSize = BitConverter.GetBytes(this.WindowSize); //WindowSize
+            foreach (byte windowsize in DestPort){ header.Add(windowsize); }
+            byte[] checkSum = this.CheckSum; // CheckSum
+            foreach (byte checksum in checkSum){ header.Add(checksum);}
+            foreach(byte urgentpointer in this.UrgentPointer){ header.Add(urgentpointer);} //UrgentPointer
+
+            return header;
+        }
+
+        private byte[] setFlags(bool[] flags)
+        {
+            FlagAssign[0] = flags[0]; //NS
+            FlagAssign[1] = flags[1]; //CWR
+            FlagAssign[2] = flags[2]; //ECE
+            FlagAssign[3] = flags[3]; //URG
+            FlagAssign[4] = flags[4]; //ACK
+            FlagAssign[5] = flags[5]; //PSH
+            FlagAssign[6] = flags[6]; //RST
+            FlagAssign[7] = flags[7]; //SYN
+            FlagAssign[8] = flags[8]; //FIN
+            byte[] flagArray = this.BitArrayToByteArray(FlagAssign);
+            return flagArray;
+        }
+        private byte[] BitArrayToByteArray(BitArray bits)
+        {
+            byte[] bytes = new byte[Math.Max(1, bits.Length / 8)];
+            bits.CopyTo(bytes, 0);
+            return bytes;
+        }
+
+        public byte[] convertIPAddrToBytes(string address)
         {
             IPAddress ip = IPAddress.Parse(address);
             byte[] ipByteArray = ip.GetAddressBytes();
             return ipByteArray;  
         }
-    public byte convertIntToByte(int num)
+        public ushort convertIntToUshort(int num)
         {
-            byte intByte = Convert.ToByte(num);
+            ushort intByte = Convert.ToUInt16(num);
             return intByte;
         }
-    public  checkSumCalculation()
+   
+       
+        private byte[] SetCheckSum(BitArray packetData)
         {
-            int checkSum = 0;
 
+            byte[] checkSum = BitArrayToByteArray(packetData.Length);
+            return checkSum;
         }
-    private int calcDataOffset()
-        {
 
+        private void SetOptions(List<string> options)
+        {
+            foreach (string item in options)
+            {
+                string hexValue = item.Substring(2);
+
+            }
         }
     }
 }
-
-
-
-
-
-
-//BitArray version
-//{ get; set; } //4
-//BitArray IHL
-//{ get; set; } //4
-//BitArray TypeOfService
-//{ get; set; } //8
-//byte[] TotalLength
-//{ get; set; }
-//Int16 Identification
-//{ get; set; }
-//BitArray Flags
-//{ get; set; } //3
-//BitArray FragmentOffset
-//{ get; set; } //13
-//int TimeToLive
-//{ get; set; }
-//string Protocol
-//{ get; set; } //will end up as an 16 int?
-//Int16 HeaderChecksum
-//{ get; set; }
-//BitArray SrcAddress
-//{ get; set; } //will be int32
-//BitArray DestAddress
-//{ get; set; }//will be int32
-//BitArray Options
-//{ get; set; }
-//BitArray Padding
-//{ get; set; }
-//Int16 SrcPort
-//{ get; set; }
-//Int16 DestPort
-//{ get; set; }
-//int SeqNumber
-//{ get; set; }
-//int AckNumber
-//{ get; set; }
-//List<int> DataOffset
-//{ get; set; }
-//Int16 Window
-//{ get; set; } //maximum amount of received data, in bytes, that can be buffered at one time on the receiving side of a connection
-//Int16 Checksum
-//{ get; set; }
-//Int16 UrgentPointer
-//{ get; set; } //pointer tell how many bytes of the data is urgent in the segment that has arrived. 
-//BitArray tcpOptions
-//{ get; set; }
-//Int16 tcpData
