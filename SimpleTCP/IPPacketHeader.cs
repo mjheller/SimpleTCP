@@ -10,10 +10,6 @@ namespace SimpleTCP
 {
     public class IPPacketHeader
     {
-        private byte[] _SrcAddress;
-        private byte[] _DestAddress;
-
-
         public BitArray Version { get; private set; } // 4 Bits
         public bool[] IHL { get; private set; } // 4 Bits
         public BitArray TypeOfService  { get; private set; } // 8 Bits
@@ -23,7 +19,7 @@ namespace SimpleTCP
         public BitArray FragmentOffset { get; private set; } // 13 Bits
         public byte TimeToLive { get; private set; } // 8 Bits
         public byte Protocol   { get; private set; } // 8 Bits
-        public byte[] CheckSum   { get; private set; } // 16 Bits
+        public ushort CheckSum   { get; private set; } // 16 Bits
         public byte[] SourceAddress  { get; private set; } // 32 Bits
         public byte[] DestinationAddress { get; private set; } // 32 Bits
         public BitArray Options    { get; private set; } // Fuck Options. Includes Padding
@@ -44,7 +40,9 @@ namespace SimpleTCP
             this.Protocol = Convert.ToByte(6); // 8
             this.SourceAddress = convertIPAddrToBytes(sourceAddress);
             this.DestinationAddress = convertIPAddrToBytes(destinationAddress); // 32
-            this.CheckSum = SetCheckSum();
+            this.CheckSum = Convert.ToUInt16(0); //temporary set 
+            this.headerBytes = setIPHeaderBytes().ToArray();
+            this.SetCheckSum(headerBytes);
             this.headerBytes = setIPHeaderBytes().ToArray();
         }
 
@@ -101,16 +99,17 @@ namespace SimpleTCP
             return new BitArray(BitConverter.GetBytes((ushort)length));
         }
 
-        private byte[] SetCheckSum()
+        private void SetCheckSum(byte[] headerBytes)
         {
+            CompareCheckSum compareCheckSum = new CompareCheckSum();
             if (headerBytes == null)
             {
                 setIPHeaderBytes();
             }
             byte[] byteArray = headerBytes.ToArray();
             ;
-            ushort crc = CRC16.ComputeCheckSum(byteArray);
-            return BitConverter.GetBytes(crc);
+            ushort checkSum = compareCheckSum.computeHash(byteArray);
+            this.CheckSum = checkSum;
         }
 
         private byte[] BitArrayToByteArray(BitArray bits)

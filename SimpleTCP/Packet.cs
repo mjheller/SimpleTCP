@@ -7,27 +7,30 @@ using System.Threading.Tasks;
 
 namespace SimpleTCP
 {
-    public class Packet<T>
+    public class Packet
     {
         public byte[] _IPPacketHeader { get; private set; }
         public byte[] _TCPpacketHeader{ get; private set; }
-        public byte[] _packetData{ get; private set; }
-        //public BitArray _bits{ get; private set; }
+        public byte[] _payload{ get; private set; }
+        
         public byte[] _bytes{ get; private set; }
-        public T _data{ get; private set; }
+        //public T _data{ get; private set; }
 
-        //public Packet(T Data)
-        //{
-        //    this._data = Data;
-        //}
-
-        public Packet(IPPacketHeader IPHeader, TCPPacketHeader TCPHeader, PacketData<T> Data)
+        
+        public Packet(int sourcePort, int destinationPort, int sequenceNumber, int ackNumber, bool[] flagArgs, int window,int urgentPointerMarker, byte[] Data)
         {
-            this._IPPacketHeader = IPHeader.headerBytes;
-            this._TCPpacketHeader = TCPHeader.headerBytes;
-            
-            this._packetData = Data.packetBytes;
+            SetPacketHeaderTCP(sourcePort, destinationPort, sequenceNumber, ackNumber, flagArgs, window, urgentPointerMarker, Data);
+            this._payload = Data; 
         }
+        
+
+        //public Packet(IPPacketHeader IPHeader, TCPPacketHeader TCPHeader, Payload<T> Data)
+        //{
+        //    this._IPPacketHeader = IPHeader.headerBytes;
+        //    this._TCPpacketHeader = TCPHeader.headerBytes;
+
+        //    this._payload = Data.packetBytes;
+        //}
 
         public void SetPacketHeaderIP(int version, bool[] TOSFlags, BitArray bodyData, ushort idNumber, bool[] flags, BitArray fragOffset, string sourceAddress, string destinationAddress)
         {
@@ -36,24 +39,13 @@ namespace SimpleTCP
             ;
         }
 
-        public void SetPacketHeaderTCP(ushort sourcePort, ushort destinationPort, int sequenceNumber, int ackNumber, bool[] flagArgs, ushort windowSize, BitArray bodyData, ushort urgentPointerMarker)
+        public void SetPacketHeaderTCP(int sourcePort, int destinationPort, int sequenceNumber, int ackNumber, bool[] flagArgs, int window, int urgentPointerMarker, byte[] packetBody)
         {
-            TCPPacketHeader tcpHeader = new TCPPacketHeader(sourcePort, destinationPort, sequenceNumber, ackNumber, flagArgs, windowSize, bodyData, urgentPointerMarker);
-            _TCPpacketHeader = tcpHeader.headerBytes;
+            TCPPacketHeader tcpHeader = new TCPPacketHeader(sourcePort, destinationPort, sequenceNumber, ackNumber, flagArgs, window, urgentPointerMarker, packetBody);
+            this._TCPpacketHeader = tcpHeader.headerBytes;
         }
 
-        public void SetPacketBody(T _data)
-        {
-            PacketData<T> packetData = new PacketData<T>(_data);
-            _packetData = packetData.packetBytes;
-        }
-
-        public void SetFinalPacket()
-        {
-            bool[] finalBitArr = _IPPacketHeader.Cast<bool>().Concat(_TCPpacketHeader.Cast<bool>()).Concat(_packetData.Cast<bool>()).ToArray();
-            BitArray finalBits = new BitArray(finalBitArr);
-            _bytes = BitArrayToByteArray(finalBits);
-        }
+        
 
         private byte[] BitArrayToByteArray(BitArray bits)
         {

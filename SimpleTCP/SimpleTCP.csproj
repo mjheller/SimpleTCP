@@ -41,12 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
-    <Compile Include="CRC16.cs" />
+    <Compile Include="CompareCheckSum.cs" />
     <Compile Include="Data.cs" />
+    <Compile Include="PacketGroup.cs" />
+    <Compile Include="Payload.cs" />
     <Compile Include="Packet.cs" />
-    <Compile Include="PacketData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server.cs" />
     <Compile Include="TCPPacketHeader.cs" />
     <Compile Include="IPPacketHeader.cs" />
   </ItemGroup>

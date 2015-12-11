@@ -10,20 +10,18 @@ namespace SimpleTCP
     public class Data<T>
     {
 
-        T message;
-        public T Message { get; set; }
-
-
         
+        public T data{ get; set; }
+
         public Data(T data)
         {
-            this.message = data;
+            this.data = data;
         }
 
 
-        public override string ToString()
-        {
-            return base.ToString();
-        }
+        //public override string ToString()
+        //{
+        //    return base.ToString();
+        //}
     }
 }

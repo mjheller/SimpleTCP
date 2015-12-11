@@ -9,25 +9,23 @@ using System.IO;
 
 namespace SimpleTCP
 {
-    public class PacketData<T>
+    public class Payload<T>
     {
         T _data;
         public byte[] packetBytes;
 
-        public PacketData()
-        {
+        //public Payload()
+        //{
 
-        }
-        public PacketData(T data)
+        //}
+        public Payload(T data)
         {
-            
             this._data = data;
             this.packetBytes = ObjectToByteArray(data);
-            
-            
         }
 
         
+
         public byte[] ObjectToByteArray(Object obj)
         {
             if (obj == null)
@@ -48,21 +46,6 @@ namespace SimpleTCP
             Object obj = (Object)binForm.Deserialize(memStream);
             return obj;
         }
-        //public static byte[] Serialize<T>(this T m)
-        //{
-        //    using (var ms = new MemoryStream())
-        //    {
-        //        new BinaryFormatter().Serialize(ms, m);
-        //        return ms.ToArray();
-        //    }
-        //}
-
-        //public static T Deserialize<T>(this byte[] byteArray)
-        //{
-        //    using (var ms = new MemoryStream(byteArray))
-        //    {
-        //        return (T)new BinaryFormatter().Deserialize(ms);
-        //    }
-        //}
+        
     }
 }
